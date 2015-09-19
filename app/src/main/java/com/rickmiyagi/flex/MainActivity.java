@@ -21,11 +21,16 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 import java.net.URL;
+import java.net.URLEncoder;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import java.io.IOException;
 import org.json.JSONException;
+
+import java.io.OutputStreamWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -107,16 +112,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
     public static void POST(String latitude, String longitude, String productId) {
+        StringBuilder sb = new StringBuilder();
         HttpURLConnection urlConn = null;
         try {
             URL url = new URL("https://sandbox-api.uber.com/v1/requests");
             urlConn = (HttpURLConnection) url.openConnection();
-            DataOutputStream printout;
-            DataInputStream input;
-            urlConn.setDoInput(true);
+            urlConn = (HttpURLConnection) url.openConnection();
             urlConn.setDoOutput(true);
+            urlConn.setRequestMethod("POST");
             urlConn.setUseCaches(false);
-            urlConn.setRequestProperty("Content-Type", "application/json");
+            urlConn.setConnectTimeout(10000);
+            urlConn.setReadTimeout(10000);
+            urlConn.setRequestProperty("Content-Type","application/json");
+
             urlConn.connect();
 
             //Create JSONObject here
@@ -124,21 +132,37 @@ public class MainActivity extends AppCompatActivity {
             jsonParam.put("start_latitude", latitude);
             jsonParam.put("start_longitude", longitude);
             jsonParam.put("product_id", productId);
+            OutputStreamWriter out = new OutputStreamWriter(urlConn.getOutputStream());
+            out.write(jsonParam.toString());
+            out.close();
 
-            // Send POST output.
-            printout = new DataOutputStream(urlConn.getOutputStream());
-            //printout.write(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
-            printout.flush();
-            printout.close();
+            int HttpResult = urlConn.getResponseCode();
+            if(HttpResult == HttpURLConnection.HTTP_OK){
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        urlConn.getInputStream(),"utf-8"));
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                br.close();
+
+                System.out.println(""+sb.toString());
+
+            }else{
+                System.out.println(urlConn.getResponseMessage());
+            }
         } catch (MalformedURLException e) {
+
             e.printStackTrace();
-        }catch (IOException e) {
+        }
+        catch (IOException e) {
+
             e.printStackTrace();
         } catch (JSONException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }finally {
-            if (urlConn != null)
+        }finally{
+            if(urlConn!=null)
                 urlConn.disconnect();
         }
     }
