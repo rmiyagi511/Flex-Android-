@@ -31,8 +31,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+//        Hub.getInstance().attachToAdjacentMyo();
+
         Intent intent = new Intent(this, ScanActivity.class);
         this.startActivity(intent);
+
+
 
         Hub.getInstance().setLockingPolicy(Hub.LockingPolicy.STANDARD);
         Hub.getInstance().addListener(mListener);
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private DeviceListener mListener = new AbstractDeviceListener() {
         @Override
         public void onConnect(Myo myo, long timestamp) {
+            Log.d("connect", "connected");
             Toast.makeText(MainActivity.this, "Myo Connected!", Toast.LENGTH_SHORT).show();
         }
 
@@ -54,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
         public void onPose(Myo myo, long timestamp, Pose pose) {
             Toast.makeText(MainActivity.this, "Pose: " + pose, Toast.LENGTH_SHORT).show();
 
-            //TODO: Do something awesome.
+            if (pose == Pose.WAVE_IN) {
+                //TODO: Call Uber!
+            }
         }
     };
 
