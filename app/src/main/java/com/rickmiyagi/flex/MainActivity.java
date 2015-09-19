@@ -16,13 +16,16 @@ import com.thalmic.myo.Pose;
 import com.thalmic.myo.scanner.ScanActivity;
 
 import org.json.JSONObject;
-import java.io.InputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+
+import java.io.IOException;
+import org.json.JSONException;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -95,54 +98,40 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    public static String POST(String latitude, String longitude, String productId){
-        InputStream inputStream = null;
-        String result = "";
+    public static void POST(String latitude, String longitude, String productId) {
+        HttpURLConnection urlConn = null;
         try {
+            URL url = new URL("https://sandbox-api.uber.com/v1/requests");
+            urlConn = (HttpURLConnection) url.openConnection();
+            DataOutputStream printout;
+            DataInputStream input;
+            urlConn.setDoInput(true);
+            urlConn.setDoOutput(true);
+            urlConn.setUseCaches(false);
+            urlConn.setRequestProperty("Content-Type", "application/json");
+            urlConn.connect();
 
-            // 1. create HttpClient
-            HttpClient httpclient = new DefaultHttpClient();
+            //Create JSONObject here
+            JSONObject jsonParam = new JSONObject();
+            jsonParam.put("start_latitude", latitude);
+            jsonParam.put("start_longitude", longitude);
+            jsonParam.put("product_id", productId);
 
-            // 2. make POST request to the given URL
-            HttpPost httpPost = new HttpPost("https://sandbox-api.uber.com/v1/requests");
-
-            String json = "";
-
-            // 3. build jsonObject
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("start_latitude", latitude);
-            jsonObject.accumulate("start_longitude", longitude);
-            jsonObject.accumulate("product_id", productId);
-
-            // 4. convert JSONObject to JSON to String
-            json = jsonObject.toString();
-
-            // 5. set json to StringEntity
-            StringEntity se = new StringEntity(json);
-
-            // 6. set httpPost Entity
-            httpPost.setEntity(se);
-
-            // 7. Set some headers to inform server about the type of the content
-            httpPost.setHeader("Content-type", "application/json");
-
-            // 8. Execute POST request to the given URL
-            HttpResponse httpResponse = httpclient.execute(httpPost);
-
-            // 9. receive response as inputStream
-            inputStream = httpResponse.getEntity().getContent();
-
-            // 10. convert inputstream to string
-            if(inputStream != null)
-                result = convertInputStreamToString(inputStream);
-            else
-                result = "Did not work!";
-
-        } catch (Exception e) {
-            Log.d("InputStream", e.getLocalizedMessage());
+            // Send POST output.
+            printout = new DataOutputStream(urlConn.getOutputStream());
+            //printout.write(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+            printout.flush();
+            printout.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }finally {
+            if (urlConn != null)
+                urlConn.disconnect();
         }
-
-        // 11. return result
-        return result;
     }
 }
