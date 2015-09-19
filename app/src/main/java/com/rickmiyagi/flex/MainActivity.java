@@ -1,6 +1,7 @@
 package com.rickmiyagi.flex;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        Hub.getInstance().setLockingPolicy(Hub.LockingPolicy.STANDARD);
+        Hub.getInstance().setLockingPolicy(Hub.LockingPolicy.NONE);
         Hub.getInstance().addListener(mListener);
 
     }
@@ -69,13 +70,20 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPose(Myo myo, long timestamp, Pose pose) {
-            Toast.makeText(MainActivity.this, "Pose: " + pose, Toast.LENGTH_SHORT).show();
 
             if (pose == Pose.WAVE_IN) {
                 //TODO: Call Uber!
+                Toast.makeText(MainActivity.this, "CALL UBER", Toast.LENGTH_SHORT).show();
+                POST("37.334381", "-121.89432", "a1111c8c-c720-46c3-8534-2fcdd730040d");
             }
         }
     };
+
+    public void callPhoneNumber(String phoneNumber) {
+        Intent callIntent = new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:" + phoneNumber));
+        startActivity(callIntent);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
